@@ -80,9 +80,16 @@ def get_text_messages(message):
     gameInstance = HigherLower(chat_id)
 
     match ms_text.lower():
-        case "мультиплеер":
-            bot.send_message(chat_id, text="Вы успешно зарегистрировались! Ожидание игроков...")
-            Rewriting.addParticipant(chat_id)
+        case "доступные комнаты":
+            Rewriting.showRooms(chat_id)
+        case "создать комнату":
+            flag = Rewriting.createRoom(chat_id)
+            if flag:
+                bot.send_message(chat_id, text="Комната успешно создана", reply_markup=Menu.getMenu("Начать игру"))
+            else:
+                bot.send_message(chat_id, text="Ошибка при создании комнаты")
+        case "начать игру":
+            Rewriting.startRoom(chat_id)
         case "игра":
             bot.send_photo(chat_id, photo=gameInstance.getCard("first", chat_id), caption="Игра запущена, первая карта:", reply_markup=Menu.getMenu("Игра"))
         case "кнопки":
@@ -123,8 +130,15 @@ def get_text_messages(message):
                 bot.send_photo(chat_id, photo=gameInstance.getCard("second", chat_id), caption="Вы проиграли, вторая карта:", reply_markup=Menu.getMenu("Основное меню"))
             gameInstance.resetGame(chat_id)
         case _:
-            # if user typed not a command, he's probably trying to type game's string
-            Rewriting.validateMessage(chat_id, ms_text.lower())
+            if ms_text.isdecimal():
+                flag = Rewriting.joinRoom(chat_id, int(ms_text))
+                if flag:
+                    bot.send_message(chat_id, text="Вы успешно присоединились к комнате", reply_markup=Menu.getMenu("Основное меню"))
+                else:
+                    bot.send_message(chat_id, text="Ошибка при присоединении к комнате", reply_markup=Menu.getMenu("Основное меню"))
+            else:
+                # if user typed not a command, he's probably trying to type game's string
+                Rewriting.validateMessage(chat_id, ms_text.lower())
 
 
 # -----------------------------------------------------------------------
